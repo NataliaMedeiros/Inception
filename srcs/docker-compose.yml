@@ -17,6 +17,39 @@ services:
       interval: 5s
       timeout: 3s
       retries: 20
+
+  wordpress:
+    build: ./requirements/wordpress
+    image: wordpress:inception
+    container_name: wordpress
+    env_file: .env
+    secrets:
+      - db_password
+      - wp_admin_password
+      - wp_user_password
+    volumes:
+      - wordpress_data:/var/www/html
+    networks:
+      - inception
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    restart: always
+
+  nginx:
+    build: ./requirements/nginx
+    image: nginx:inception
+    container_name: nginx
+    env_file: .env
+    ports:
+      - "443:443"
+    volumes:
+      - wordpress_data:/var/www/html
+    networks:
+      - inception
+    depends_on:
+      - wordpress
+    restart: always
 #restart: always - This is how you satisfy the subject’s “containers have to restart in case of a crash.”
 
 #Without a volume, deleting the container would delete the database.
@@ -48,20 +81,3 @@ secrets:
   wp_user_password:
     file: ../secrets/wp_user_password.txt
 
-  wordpress:
-    build: ./requirements/wordpress
-    image: wordpress:inception
-    container_name: wordpress
-    env_file: .env
-    secrets:
-      - db_password
-      - wp_admin_password
-      - wp_user_password
-    volumes:
-      - wordpress_data:/var/www/html
-    networks:
-      - inception
-    depends_on:
-      mariadb:
-        condition: service_healthy
-    restart: always
