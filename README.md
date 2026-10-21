@@ -1,3 +1,5 @@
+*This project has been created as part of the 42 curriculum by <login>.*
+
 Starting to understanding the subject and concepts involved
 
 Rules:
@@ -168,6 +170,19 @@ secrets/
 - **Separation of code and configuration:** the same Dockerfiles and
   `docker-compose.yml` can run on any machine, with different passwords for each
   one.
+
+Por que a tag latest é proibida (útil para a defesa):
+
+Reprodutibilidade: latest muda com o tempo. O mesmo Dockerfile pode gerar imagens diferentes hoje e daqui a seis meses, e algo que funcionava pode quebrar sem você mudar nada.
+Previsibilidade: com uma versão fixa, você e o avaliador constroem exatamente a mesma base.
+Segurança e controle: você escolhe quando atualizar, em vez de receber mudanças sem perceber.
+
+
+
+
+
+
+
 
 Parte 2: instalar o Debian
 6. No menu azul, escolha Install (modo texto).
