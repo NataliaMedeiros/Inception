@@ -4,6 +4,7 @@ set -e
 DB_PASSWORD="$(cat /run/secrets/db_password)"
 DB_ROOT_PASSWORD="$(cat /run/secrets/db_root_password)"
 
+#-R means recursive: apply the change to the folder and everything inside it
 chown -R mysql:mysql /var/lib/mysql
 
 #-d tests whether a folder exists, and ! means “not”.
