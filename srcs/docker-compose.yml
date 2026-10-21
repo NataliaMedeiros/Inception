@@ -1,0 +1,34 @@
+services:
+  mariadb:
+    build: ./requirements/mariadb
+    image: mariadb:inception
+    container_name: mariadb
+    env_file: .env
+    secrets:
+      - db_password
+      - db_root_password
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    networks:
+      - inception
+    restart: always
+#restart: always - This is how you satisfy the subject’s “containers have to restart in case of a crash.”
+
+#Without a volume, deleting the container would delete the database.
+#With a volume, that folder actually points to storage that survives.
+volumes:
+  mariadb_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/${LOGIN}/data/mariadb
+
+networks:
+  inception:
+
+secrets:
+  db_password:
+    file: ../secrets/db_password.txt
+  db_root_password:
+    file: ../secrets/db_root_password.txt

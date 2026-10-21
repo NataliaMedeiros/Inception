@@ -9,6 +9,7 @@ chown -R mysql:mysql /var/lib/mysql
 
 #-d tests whether a folder exists, and ! means “not”.
 #Read it as: “if the folder /var/lib/mysql/mysql doesn’t exist, do the setup.”
+#so it run only the data folder has no database yet
 if [ ! -d /var/lib/mysql/mysql ]; then
     mariadb-install-db --user=mysql --datadir=/var/lib/mysql > /dev/null #Creates the empty system databases MariaDB needs.
 
