@@ -12,6 +12,11 @@ services:
     networks:
       - inception
     restart: always
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "--silent"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
 #restart: always - This is how you satisfy the subject’s “containers have to restart in case of a crash.”
 
 #Without a volume, deleting the container would delete the database.
@@ -23,6 +28,12 @@ volumes:
       type: none
       o: bind
       device: /home/${LOGIN}/data/mariadb
+  wordpress_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/${LOGIN}/data/wordpress
 
 networks:
   inception:
@@ -32,3 +43,25 @@ secrets:
     file: ../secrets/db_password.txt
   db_root_password:
     file: ../secrets/db_root_password.txt
+  wp_admin_password:
+    file: ../secrets/wp_admin_password.txt
+  wp_user_password:
+    file: ../secrets/wp_user_password.txt
+
+  wordpress:
+    build: ./requirements/wordpress
+    image: wordpress:inception
+    container_name: wordpress
+    env_file: .env
+    secrets:
+      - db_password
+      - wp_admin_password
+      - wp_user_password
+    volumes:
+      - wordpress_data:/var/www/html
+    networks:
+      - inception
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    restart: always

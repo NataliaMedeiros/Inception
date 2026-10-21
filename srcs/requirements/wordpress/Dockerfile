@@ -9,6 +9,8 @@ RUN apt-get update \
         curl ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
+#php*.2-mysql - Allow PHP to connect whit MariaDB
+
 # WP-CLI: installs and configures WordPress from the command line
 RUN curl -fsSL https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \
         -o /usr/local/bin/wp \

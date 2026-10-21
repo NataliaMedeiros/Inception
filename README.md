@@ -253,7 +253,7 @@ Browser --HTTPS (443, TLSv1.2/1.3)--> NGINX
 - DataCamp, *Containers vs Virtual Machines*: https://www.datacamp.com/blog/containers-vs-virtual-machines
 - Docker Docs, *What is an image?*: https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-an-image/
 - Docker Docs, *Understanding image layers*: https://docs.docker.com/get-started/docker-concepts/building-images/understanding-image-layers/
--
-
+- https://github.com/WordPress/hosting-handbook/blob/main/server-environment.md
+- https://make.wordpress.org/hosting/handbook/server-environment/#php-extensions
 ### Use of AI
 
