@@ -1,340 +1,259 @@
-*This project has been created as part of the 42 curriculum by <login>.*
+*This project has been created as part of the 42 curriculum by <nmedeiro>.*
 
-Starting to understanding the subject and concepts involved
+# Inception
 
-Rules:
-- Project need to be done in a virtual machine
-- All the files required for the configuration of your project must be placed in a srcs
-folder
-- Makefile - must set up your entire application (i.e., it has to build the Docker images using
-docker-compose.yml).
+## Description
 
+Inception is a system administration project from the 42 curriculum. The goal is to set up a small web infrastructure with **Docker Compose**, inside a **virtual machine**, where every service runs in its own container and every image is built from our own Dockerfile.
 
-Mandatory part
-Do in a **virtual machine** and use **docker compose**
-Each Docker image must have the same name as its corresponding service.
-Each service has to run in a dedicated container.
+The stack is made of:
 
-For performance reasons, the containers must be built either from the penultimate stable version of **Alpine or Debian**. The choice is yours
+- **NGINX**: the only entrypoint of the infrastructure, reachable on port 443 with TLSv1.2 or TLSv1.3 only.
+- **WordPress + php-fpm**: the website and the PHP engine that runs it (no NGINX inside this container).
+- **MariaDB**: the database used by WordPress (no NGINX inside this container).
+- **Two named volumes**: one for the WordPress database and one for the WordPress website files, both stored in `/home/<login>/data` on the host.
+- **A Docker network** connecting the containers.
 
+`<If I decide to do the bonus, I need to list the extra services here (Redis, FTP, static site, Adminer, ...).>`
 
-Debian x Alpine
+The website is available at `https://nmedeiro.42.fr`.
 
-**Debian** is a general-purpose Linux distribution, one of the oldest and most stable. It uses the glibc C library and the apt package manager.
+## Instructions
 
-Debian advantages:
+### Prerequisites
 
-Most tutorials and Stack Overflow answers match it
-Software behaves as expected (glibc)
-Easier debugging, with more tools available
-
-Debian disadvantages:
-
-Bigger images and slower builds
-Larger attack surface (more installed packages)
-
-**Alpine** is a minimal Linux distribution built for small size and security. It uses musl (a lighter C library), apk as package manager, and BusyBox for basic tools.
-
-Alpine advantages:
-
-Tiny images, fast builds and pulls
-Minimal, so fewer things to attack
-
-Alpine disadvantages:
-
-musl can cause rare compatibility or performance bugs
-Different commands and paths from what tutorials show (apk add, /bin/sh instead of bash)
-Harder for beginners to troubleshoot
-
-
-VM X Docker
-
-Virtualization, a technique that allows running multiple environments on a single physical server. Virtualization is primarly implemente using or virtual machine or container.
-
-Virtual Machine
-A virtual Machine is a technology that enables virtualization at the hardware level. Each virtual machine acts as a isolated system with it ons opperating system, application and dependencies.This is made possible by “hypervisor” software, which is responsible for allocating hardware resources like CPU cores and storage to each VM.
-Since they have their own OS, VMs consumes more resorses including CPU and RAM and have a longer startup time. Overall, VMs provides greater security than containers due to their isolate level (complete isolation because of has it own OS), them a secutirty treat in on VM doesn't affect another VM.
-Overall, VMs have more down sides than containers, however it has specific use cases that worth it, including running legacy applications, supporting multi-OS environments, and handling security-critical workloads.
-
-Running legacy applications
-VMs are ideal for running legacy applications that require older or outdated operating systems. Since VMs can have their own OS environments, teams can continue using their older applications that may not be compatible with modern operating systems.
-
-Containers
-A container is a way of virtualization that operates at system level. Diferently from VM, containers don't have they own operational System, instead they share the host OS, which makes them significantly ligthweight and efficient.
-Since container only package application and dependencies, they are much more portable than VMs. This makes moving containers across different environments (e.g., development to production) easy without compromising compatibility. **Docker** is the top platform that developers use to build and run container applications.
-Since containers do not need to emulate their own OS, they can start up in seconds. This quick startup time makes containers popular in **Continuous Integration/Continuous Deployment (CI/CD)** pipelines, where speed and efficiency are required.
-Conteiners are higly portable dues their ligthweight nature.They can be moved between environments with minimal effort. And, since they are designed to run consistently across different environments, they eliminate compatibility issues.
-Containers’ lightweight nature makes them powerful assets in modern software development.
-Microservices architecture - Since containers are application-independent, they allow microservices to coexist while ensuring that issues in one service do not impact others. As microservices architecture has gained popularity, engineering teams increasingly rely on containers to deploy their applications.
-CI/CD and DevOps pipelines
-
-Portability across environments - Containers make it easy for developers to move code from development to testing to production. They are designed to package applications that run successfully across different systems, which reduces compatibility issues.
-
-Combining containers and VMs
-The VMs provide robust isolation that adds a layer of security, reducing the risk of threats to the application. By placing containers in VMs, you can have greater control over resource allocation, making it easier to ensure that each group of containers can access sufficient resources for their application.
-
-Furthermore, this combination makes scaling and handling deployments easier across different environments.
-
-What to study in the sequence:
-Image vs container: an image is the template, a container is a running instance.
-Dockerfile: what FROM, RUN, COPY, EXPOSE, ENTRYPOINT and CMD do.
-Docker Compose: how one docker-compose.yml describes several services, networks and volumes.
-PID 1 and foreground processes: why tail -f and sleep infinity are forbidden, and why a daemon must run in the foreground.
-Volumes vs bind mounts, Docker network vs host network, secrets vs environment variables. These are also required in your README.
-How the three services work together: NGINX → (FastCGI, port 9000) → php-fpm/WordPress → MariaDB (port 3306). TLS and what a self-signed certificate is.
-
-Container imagem
- A container image is a standardized package that includes all of the files, binaries, libraries, and configurations to run a container.
-A image is immutable, after created cannot be modified. It is possible use a image create other things over it and them create my image with the combination.
-The image contains everything that is need to run a container
-Container images are composed of layers. Each layer represents a set of file system changes that add, remove, or modify files.
-
-Finding images
-Docker Hub is the default global marketplace for storing and distributing images. It has over 100,000 images created by developers that you can run locally. You can search for Docker Hub images and run them directly from Docker Desktop.
-
-Image layers
-Each layer in an imagem add, remove some configuration.
-Each layer in an image contains a set of filesystem changes - additions, deletions, or modifications.
-Examples:
-The first layer adds basic commands and a package manager, such as apt.
-The second layer installs a Python runtime and pip for dependency management.
-The third layer copies in an application’s specific requirements.txt file.
-The fourth layer installs that application’s specific dependencies.
-The fifth layer copies in the actual source code of the application.
-This is beneficial because it allows layers to be reused between images. For example, imagine you wanted to create another Python application. Due to layering, you can leverage the same Python base. This will make builds faster and reduce the amount of storage and bandwidth required to distribute the images.
-Each instruction that changes the filesystem (FROM, RUN, COPY, ADD) creates a new layer on top of the previous one. Instructions like EXPOSE, ENTRYPOINT, CMD, ENV only add metadata (no filesystem change).
-An image layer is a saved snapshot of the changes made by one Dockerfile instruction.
-
-How it works: when Docker builds an image, each instruction (FROM, RUN, COPY...) creates a new layer holding only the files that instruction added or changed. The image is all those layers stacked in order.
-
-FROM debian:bookworm          → layer 1: the Debian files
-RUN apt install -y nginx      → layer 2: files added by nginx install
-COPY nginx.conf /etc/nginx/   → layer 3: your config file
-
-Layers are read-only. When you start a container, Docker adds one thin writable layer on top, and that’s the only place the container can write. Delete the container and that top layer is gone, which is why the data is lost.
-What layers are used for:
-
-Build cache. If you change only nginx.conf, Docker reuses layers 1 and 2 from the cache and rebuilds only layer 3. Builds become much faster. This is why you put rarely-changing instructions (installing packages) before frequently-changing ones (copying your files).
-Sharing. If three images start FROM debian:bookworm, the Debian layer is stored once on disk and shared. Ten containers from the same image also share all the read-only layers, so they are cheap.
-Smaller transfers. When pulling an image, Docker downloads only the layers you don’t already have.
-
-The instructions
-
-FROM: sets the base image. It is always the first instruction and gives you the first layers.
-RUN: executes a command at build time and saves the result as a new layer. Used to install packages.
-COPY: copies files from your build context (the folder next to the Dockerfile) into the image. New layer.
-EXPOSE: documents which port the container listens on. Metadata only. It does not publish the port; publishing is done with ports: in Compose.
-ENTRYPOINT and CMD: define what runs at container start (not at build time).
-
-ENTRYPOINT = the main executable, the fixed part of the command.
-CMD = default arguments for the ENTRYPOINT, or the default command if there is no ENTRYPOINT. Easy to override from docker run or Compose command:.
-
-Project:
-First install virtual machine using virtualBox and debian ISO, dowload at Debian.org
-
-Parte 1: criar a VM
-
-Abra o Oracle VirtualBox Manager e clique em New.
-Preencha:
-Name: inception
-Folder: sua pasta no sgoinfre
-ISO Image: escolha o debian-13.7.0-amd64-netinst.iso (provavelmente em Downloads)
-Type: Linux
-Version: Debian (64-bit)
-Marque Skip Unattended Installation
-Clique em Next. Em Hardware: Base Memory: 4096 MB e Processors: 2.
-Clique em Next. Em Hard Disk: Create a Virtual Hard Disk Now, tamanho 30 GB. Não marque Pre-allocate Full Size.
-Clique em Finish e depois em Start.
-
-## Why `secrets/` and `srcs/.env` are in `.gitignore`
-
-The project needs passwords (MariaDB root password, database user password,
-WordPress users' passwords) and other configuration values. These must **never**
-be committed to the Git repository, so the two places that hold them are
-excluded from version control:
+- A virtual machine running Linux, with `docker`, `docker compose` and `make` installed.
+- The domain name pointing to the local IP address. Add this line to `/etc/hosts` (replace the IP and the login):
 
 ```
-srcs/.env
-secrets/
+127.0.0.1   <login>.42.fr
 ```
 
-### Reasons
-- **Subject requirement:** any credential, API key or password found in the Git
-  repository (outside of properly configured secrets) causes the project to fail.
-- **Git history is permanent:** a file that is committed once stays in the
-  history, even if it is deleted in a later commit. Anyone with access to the
-  repository can recover it.
-- **Repositories get shared:** the code is read by peers, evaluators and
-  possibly recruiters. Passwords are specific to one deployment and are not
-  part of the source code.
-- **Separation of code and configuration:** the same Dockerfiles and
-  `docker-compose.yml` can run on any machine, with different passwords for each
-  one.
+### Configuration
 
-Por que a tag latest é proibida (útil para a defesa):
+1. Create `srcs/.env` with the non-sensitive variables (domain name, database name, usernames, ...).
+2. Create the `secrets/` folder with the password files (`db_password.txt`, `db_root_password.txt`, `credentials.txt`).
+3. Make sure neither `.env` nor `secrets/` is committed to Git.
 
-Reprodutibilidade: latest muda com o tempo. O mesmo Dockerfile pode gerar imagens diferentes hoje e daqui a seis meses, e algo que funcionava pode quebrar sem você mudar nada.
-Previsibilidade: com uma versão fixa, você e o avaliador constroem exatamente a mesma base.
-Segurança e controle: você escolhe quando atualizar, em vez de receber mudanças sem perceber.
+### Build and run
 
-
-
-
-
-
-
-
-Parte 2: instalar o Debian
-6. No menu azul, escolha Install (modo texto).
-7. Select a language: English. Select your location: sua região (Netherlands, ou other > Europe). Configure the keyboard: o layout que você realmente usa.
-8. Hostname: seu login. Domain name: deixe vazio.
-9. Root password: defina uma senha. Depois, crie seu usuário: Full name e Username com o seu login 42, e uma senha.
-10. Partition disks: escolha Guided - use entire disk, selecione o disco, depois All files in one partition (recommended for new users), depois Finish partitioning and write changes to disk, e responda Yes. Não escolha as opções com “encrypted”.
-11. Scan extra installation media? No. Package manager: país Netherlands e deb.debian.org. Proxy: deixe vazio. Popularity contest: No.
-12. Software selection: marque Xfce, SSH server e standard system utilities. Desmarque GNOME se estiver marcado.
-13. Install the GRUB boot loader: Yes, e escolha /dev/sda.
-14. Em Installation complete, clique em Continue. A VM reinicia.
-15. Se voltar ao instalador, desligue a VM e vá em Settings > Storage, clique no ISO e remova-o.
-16. Faça login com seu usuário.
-17. Tire um snapshot: Machine > Take Snapshot (ou aba Snapshots no Manager).
-
-## Virtual Machine Setup
-
-### Choices
-- **Hypervisor:** Oracle VirtualBox (installed on the campus computers).
-- **VM operating system:** Debian 13 "trixie" (stable), `netinst` ISO, amd64.
-- **Why Debian:** widely used, so documentation and troubleshooting help are easy to find; uses glibc, so software behaves as documented; easier to debug for beginners than Alpine.
-- **Storage:** VM files are stored in the shared campus storage (`sgoinfre`) to avoid filling the home quota.
-- **Containers' base image (later):** the penultimate stable Debian release (`bookworm`), never `latest`.
-
-### Steps
-1. Download `debian-13.7.0-amd64-netinst.iso` from debian.org.
-2. In VirtualBox, click **New** and set:
-   - Name: `inception`; Folder: personal folder in `sgoinfre`
-   - ISO image: the Debian netinst ISO
-   - Type: Linux; Version: Debian (64-bit)
-   - Check **Skip Unattended Installation** (so the user, hostname and partitioning are chosen manually)
-3. Hardware: Base Memory 4096 MB, 2 processors.
-4. Hard disk: new VDI, 30 GB, dynamically allocated (do not pre-allocate).
-5. Click **Finish**, then **Start**.
-6. In the installer menu, choose **Graphical install**.
-7. Language: English. Location: other > Europe > Netherlands. Locale: en_US.UTF-8. Keyboard: American English.
-8. Hostname: `<login>`; domain name: empty.
-9. Set a root password and create a user named `<login>` with its own password (passwords are not stored in the repository).
-10. Partitioning: Guided - use entire disk > All files in one partition (no LVM, no encryption) > Finish partitioning and write changes to disk > Yes.
-11. Wait for "Installing the base system".
-12. Package manager: no extra installation media, country Netherlands, mirror `deb.debian.org`, no proxy.
-13. Package usage survey: No.
-14. Software selection: Xfce desktop, SSH server, standard system utilities.
-15. Install GRUB on `/dev/sda`.
-16. Reboot, remove the ISO from the VM storage settings if the installer restarts, and log in.
-17. Take a VM snapshot of the clean installation.
-
-## 2. Preparing the VM
-
-### 2.1 Base tools and sudo
-```
-su -
-apt update && apt install -y sudo make git curl ca-certificates
-usermod -aG sudo <login>
-exit
-```
-Log out and log in again (group changes only apply to new sessions), then check:
-```
-sudo whoami        # must print: root
+```bash
+make          # build the images and start the stack
+make down     # stop the containers
+make clean    # <adjust to your Makefile>
+make fclean   # <adjust to your Makefile>
+make re       # rebuild everything
 ```
 
-### 2.2 Installing Docker Engine and Docker Compose
-Based on the official guide: https://docs.docker.com/engine/install/debian
+Then open `https://<login>.42.fr` in a browser (the browser will warn about the self-signed certificate).
 
-1. Add Docker's GPG key:
+### More documentation
+
+- [USER_DOC.md](USER_DOC.md): how to use and administer the stack.
+- [DEV_DOC.md](DEV_DOC.md): how to set up, build and maintain the project as a developer.
+
+## Project Description
+
+### Use of Docker and project sources
+
+Docker is used to run each service in an isolated container. The project is organized as follows:
+
 ```
-sudo apt update
-sudo install -m 0755 -d /etc/apt/keyrings
-sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
-sudo chmod a+r /etc/apt/keyrings/docker.asc
-ls -l /etc/apt/keyrings/docker.asc     # check: -rw-r--r--, about 3.8 KB
-```
-2. Add Docker's repository (one-line version, because pasting multi-line text into the VM was not possible):
-```
-printf 'Types: deb\nURIs: https://download.docker.com/linux/debian\nSuites: trixie\nComponents: stable\nSigned-By: /etc/apt/keyrings/docker.asc\n' | sudo tee /etc/apt/sources.list.d/docker.sources
-cat /etc/apt/sources.list.d/docker.sources   # check: 5 lines, "Suites: trixie"
-sudo apt update
-apt-cache policy docker-ce                    # check: Candidate is a version number, not (none)
-```
-3. Install Docker:
-```
-sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-```
-4. Use Docker without sudo, then log out and log in again:
-```
-sudo usermod -aG docker $USER
-```
-5. Verify:
-```
-docker --version            # Docker version 29.9.1
-docker compose version      # Docker Compose version v5.6.0
-docker run hello-world      # must print "Hello from Docker!"
-```
-6. Clean up the test (pulling ready-made images is forbidden in the project itself; this was only a test):
-```
-docker rm $(docker ps -aq)
-docker rmi hello-world
+.
+├── Makefile                  # builds and starts everything through docker compose
+├── secrets/                  # passwords (ignored by git)
+└── srcs/
+    ├── docker-compose.yml    # services, network and volumes
+    ├── .env                  # non-sensitive environment variables (ignored by git)
+    └── requirements/
+        ├── mariadb/          # Dockerfile, conf/, tools/
+        ├── nginx/            # Dockerfile, conf/, tools/
+        └── wordpress/        # Dockerfile, conf/, tools/
 ```
 
-### 2.3 Host configuration (required by the subject)
+- Each service has its **own Dockerfile**, and each image has the same name as its service.
+- The Makefile calls `docker compose`, which builds the images from these Dockerfiles and starts the containers.
+- No ready-made images are pulled, except the Alpine/Debian base image.
+
+### Main design choices
+
+- **Base image:** `<Alpine/Debian + version>`. This is the penultimate stable version, as required by the subject. The `latest` tag is never used.
+- **Why this base:** `<your reason>`.
+- **PID 1:** every service runs in the foreground as PID 1 (via `exec` in the entrypoint script). No `tail -f`, `sleep infinity`, `while true` or `bash` hacks.
+- **Restart policy:** containers restart automatically if they crash.
+- **Single entrypoint:** only NGINX publishes a port (443). WordPress and MariaDB are only reachable inside the Docker network.
+- **Credentials:** non-sensitive values in `.env`, passwords in Docker secrets. No password appears in any Dockerfile.
+- **WordPress users:** two users, one of them an administrator whose name does not contain "admin" or "administrator".
+
+#### Debian vs Alpine
+
+| | Debian | Alpine |
+|---|---|---|
+| Type | General-purpose, one of the oldest and most stable | Minimal, built for small size and security |
+| C library | glibc | musl |
+| Package manager | `apt` | `apk` |
+| Shell | bash available | BusyBox, `/bin/sh` |
+| Image size | Larger, slower builds | Tiny, fast builds and pulls |
+| Attack surface | Larger (more packages) | Smaller |
+| Compatibility | Software behaves as expected, most tutorials match | Rare musl compatibility or performance bugs, different commands and paths |
+| Debugging | Easier, more tools | Harder for beginners |
+
+### Comparisons
+
+#### Virtual Machines vs Docker
+
+**Virtualization** is a technique that allows running multiple environments on a single physical server. It is mainly done with virtual machines or containers.
+
+A **virtual machine** virtualizes the *hardware*. A **hypervisor** allocates resources such as CPU cores and storage to each VM, and each VM runs its own operating system, applications and dependencies. Because of this, VMs use more CPU and RAM and take longer to start. In return, they offer stronger isolation: a security threat in one VM does not affect another. VMs are a good fit for legacy applications that need old operating systems, multi-OS environments and security-critical workloads.
+
+A **container** virtualizes at the *operating system* level. Containers do not have their own OS: they share the host kernel and only package the application and its dependencies. This makes them lightweight, fast to start (seconds) and very portable, so they can move between development, testing and production with minimal effort. They fit microservices architectures and CI/CD pipelines well. **Docker** is the most widely used platform to build and run containers.
+
+The two can be combined: running containers inside VMs adds an isolation layer, gives more control over resource allocation, and makes scaling and deployment easier. This is the setup of this project.
+
+| | Virtual Machine | Docker container |
+|---|---|---|
+| Virtualizes | Hardware | Operating system (shared kernel) |
+| Has its own OS | Yes | No |
+| Startup time | Slow | Seconds |
+| Resource usage | High | Low |
+| Isolation | Very strong | Weaker (shared kernel) |
+| Portability | Heavy | Very portable |
+
+#### Secrets vs Environment Variables
+
+| | Environment variables | Docker secrets |
+|---|---|---|
+| Defined in | `.env` file or `environment:` in Compose | Files in `secrets/`, declared in Compose |
+| Visibility | Visible with `docker inspect` and in the process environment | Mounted as files in `/run/secrets/<name>`, only inside the services that need them |
+| Best for | Non-sensitive configuration (domain name, database name, usernames) | Passwords and confidential data |
+
+In this project, non-sensitive settings are in `.env` and passwords are in secrets. Neither is committed to Git.
+
+#### Docker Network vs Host Network
+
+| | Docker (bridge) network | Host network |
+|---|---|---|
+| Isolation | Containers get their own network namespace | Container shares the host network stack |
+| Name resolution | Containers reach each other by service name | No service-name DNS between containers |
+| Port exposure | Only explicitly published ports | Every port the process opens is exposed on the host |
+| In this project | **Used** (custom network in `docker-compose.yml`) | **Forbidden** (`network: host`, `links`) |
+
+#### Docker Volumes vs Bind Mounts
+
+| | Docker named volume | Bind mount |
+|---|---|---|
+| Managed by | Docker | The user (any host path) |
+| Portability | High, independent of the host folder layout | Depends on the host path existing |
+| In this project | **Required** for the database and the WordPress files, with data stored in `/home/<login>/data` | Not allowed for these two storages |
+
+`<Add one sentence explaining how you configured the named volumes to store data in /home/<login>/data.>`
+
+## Concepts Explained
+
+### Images
+
+A **container image** is a standardized package that includes all the files, binaries, libraries and configuration needed to run a container. An image is **immutable**: once created, it cannot be modified, but you can build a new image on top of an existing one.
+
+- **Image** = the template.
+- **Container** = a running instance of an image.
+
+Public images are stored and distributed through registries such as Docker Hub, the default global marketplace with over 100,000 images. In this project, pulling ready-made images is forbidden (only the Alpine/Debian base is allowed), so every service image is built from our own Dockerfile.
+
+### Layers
+
+An image is composed of **layers**. Each layer is a read-only snapshot of the filesystem changes (additions, deletions, modifications) made by one Dockerfile instruction. For example:
+
+```dockerfile
+FROM debian:bookworm          # layer 1: the Debian files
+RUN apt install -y nginx      # layer 2: files added by the nginx install
+COPY nginx.conf /etc/nginx/   # layer 3: our config file
 ```
-mkdir -p ~/data/mariadb ~/data/wordpress
-echo "127.0.0.1 <login>.42.fr" | sudo tee -a /etc/hosts
-ls ~/data                   # check: mariadb  wordpress
-cat /etc/hosts              # check: the new line is at the end
+
+Only `FROM`, `RUN`, `COPY` and `ADD` create filesystem layers. `EXPOSE`, `ENV`, `ENTRYPOINT` and `CMD` only add metadata.
+
+When a container starts, Docker adds one thin **writable layer** on top of the read-only layers. It is the only place the container can write, and it is deleted with the container. This is why persistent data needs **volumes**.
+
+Layers are useful for:
+
+- **Build cache.** If only `nginx.conf` changes, Docker reuses layers 1 and 2 and rebuilds only layer 3. This is why rarely-changing instructions (installing packages) come *before* frequently-changing ones (copying files).
+- **Sharing.** Images starting from the same base share its layers on disk, and containers from the same image share all read-only layers.
+- **Smaller transfers.** Pulling an image downloads only the layers you do not already have.
+
+### Dockerfile and `docker build`
+
+A **Dockerfile** is the recipe that builds an image.
+
+| Instruction | What it does |
+|---|---|
+| `FROM` | Sets the base image. It is the first instruction. |
+| `RUN` | Executes a command **at build time** and saves the result as a new layer (e.g. installing packages). |
+| `COPY` | Copies files from the build context into the image. |
+| `EXPOSE` | Documents the port the container listens on. Metadata only: it does **not** publish the port. Publishing is done with `ports:` in Compose. |
+| `ENTRYPOINT` | The main executable, the fixed part of the start command. Runs **at container start**. |
+| `CMD` | Default arguments for `ENTRYPOINT`, or the default command if there is no `ENTRYPOINT`. Easy to override from `docker run` or Compose `command:`. |
+
+`docker build` is the command that builds an image from a Dockerfile:
+
+```bash
+docker build -t mariadb:inception ./requirements/mariadb
 ```
-`~/data` is `/home/<login>/data`, the path required for the two named volumes.
 
-## 3. Troubleshooting notes
-- **Mouse stuck in the VM window:** press the host key (Right Ctrl).
-- **Window too small:** Right Ctrl + F (full screen) or View > Scaled Mode.
-- **Cannot copy/paste into the VM:** enable Devices > Shared Clipboard > Bidirectional (may need `virtualbox-guest-x11`); paste in the terminal with Ctrl + Shift + V. Otherwise type commands by hand, one line at a time.
-- **Multi-line `<<EOF` command typed as a single line:** it does not work; use the `printf` one-liner above.
-- **`Invalid value set for option Signed-By ... (not a fingerprint)`:** a stray character in `docker.sources`; rewrite the file with the `printf` command and check it with `cat -A`.
-- **`Unable to locate package`:** typo in a package name (`containerd.io`, `docker-buildx-plugin`).
+It reads the Dockerfile, executes the instructions in order (`FROM`, `RUN`, `COPY`, ...), creates one layer per instruction and delivers the finished image. The folder passed to the command is the **build context**. In this project the build is not run by hand: Docker Compose does it, called by the Makefile.
 
-### Troubleshooting notes
-- **Mouse stuck inside the VM window:** press the host key (Right Ctrl) to release it.
-- **Text installer language list cannot be scrolled:** use the Graphical install instead; the result is identical.
-- **Country list has no Netherlands when English is selected:** choose "other", then Europe, then Netherlands.
-- **Keyboard layout:** the "international" layout uses dead keys that break quotes in the terminal, so the plain American layout was chosen. Check with Shift+2: `@` means US layout, `"` means Dutch layout.
+### Docker Compose
 
-### Why persistent data folders and `/etc/hosts`
+`docker-compose.yml` describes the whole application in one file: the **services** (nginx, wordpress, mariadb), the **networks** and the **volumes**. The Makefile uses it to build the images and start the containers.
 
-- **Data folders (`/home/<login>/data/mariadb` and `/home/<login>/data/wordpress`):**
-  containers are disposable: deleting one deletes everything written inside it.
-  The WordPress database and website files must survive, so they are stored in
-  two Docker named volumes whose data lives in these host folders. Docker needs
-  the folders to exist before it mounts the volumes, so the Makefile creates
-  them (`mkdir -p`) before starting the stack. This also makes the project work
-  on a clean VM.
-- **`/etc/hosts` entry (`127.0.0.1 <login>.42.fr`):** this file maps names to
-  IP addresses and is read before any DNS server. The line makes
-  `<login>.42.fr` point to the VM itself (loopback), where NGINX listens on
-  port 443. It lives on the VM, not in the repository, so it must be added
-  manually when setting up a new VM.
+### PID 1 and foreground processes
 
-fonte:
-https://www.datacamp.com/blog/containers-vs-virtual-machines?utm_cid=23552157103&utm_aid=188237542930&utm_campaign=230119_1-ps-other~dsa-tofu~data-eng_2-b2c_3-europe_4-prc_5-na_6-na_7-le_8-pdsh-go_9-nb-e_10-na_11-na&utm_loc=9064298-&utm_mtd=-c&utm_kw=&utm_source=google&utm_medium=paid_search&utm_content=ps-other~europe-en~dsa~tofu~blog~data-engineering&gad_source=1&gad_campaignid=23552157103&gbraid=0AAAAADQ9WsEGVU7SbCStmexZtsbW5rp8z&gclid=CjwKCAjw3NHWBhANEiwAtpwId2zEN1elcoD1sSDMFioSieXmym7Q4TOY7IJajQ1gtpt0YYdGiWtwmxoCRC8QAvD_BwE
+The first process of a container (PID 1) *is* the container: when it exits, the container stops. So the main service must run **in the foreground** as PID 1. Hacks like `tail -f`, `sleep infinity`, `while true` or a bare `bash` only keep the container alive artificially while the real service may be dead or running in the background, so they are forbidden. An entrypoint script should end with `exec <service in foreground>`, so the service replaces the shell, becomes PID 1 and receives signals correctly (for example from `docker stop`).
 
-https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-an-image/
+### The services
 
-https://docs.docker.com/get-started/docker-concepts/building-images/understanding-image-layers/
+#### MariaDB
 
+MariaDB is a **relational database management system (RDBMS)** that you talk to using **SQL** (Structured Query Language). It is a fork of MySQL, which is why many commands and config names still say `mysql` (the `mysql` user, `/var/lib/mysql`, `MYSQL_USER`).
 
-MariaDB
-MariaDB is a relational database management system (RDBMS) that you talk to using SQL (Structured Query Language). It is a fork of MySQL, which is why many commands and config names still say mysql (the mysql user, /var/lib/mysql, MYSQL_USER).
+- **Relational:** data is stored in tables with rows and columns, and tables can be linked to each other.
+- **SQL:** the language used to create, read, change and delete data, for example `CREATE DATABASE`, `SELECT`, `INSERT`.
+- **Server:** MariaDB runs as a program that listens on **port 3306**. Clients (like WordPress) connect to it over the network and send SQL commands.
 
-What that means:
+#### WordPress
 
-Relational: data is stored in tables with rows and columns, and tables can be linked to each other.
-SQL: the language used to create, read, change and delete that data, for example CREATE DATABASE, SELECT, INSERT.
-Server: MariaDB runs as a program that listens on port 3306. Clients (like WordPress) connect to it over the network and send SQL commands.
+WordPress is a website system written in **PHP**. PHP code does not run by itself on a web page: something has to execute it and return the resulting HTML.
 
-dockefiles build the images
+#### php-fpm
+
+**php-fpm** (FastCGI Process Manager) is the program that executes PHP code. It runs as a service, waits for requests on **port 9000**, runs the requested PHP file and sends the result back.
+
+#### NGINX and TLS
+
+**NGINX** is the web server and the only entrypoint of the infrastructure. It terminates TLS on port 443, serves static files, and forwards PHP requests to php-fpm using the FastCGI protocol.
+
+**TLS** encrypts the connection between the browser and the server. A **self-signed certificate** is signed by ourselves instead of by a trusted Certificate Authority: it provides encryption, but browsers show a warning because the identity is not verified by a third party.
+
+### How the services work together
+
+```
+Browser --HTTPS (443, TLSv1.2/1.3)--> NGINX
+                                        |
+                                FastCGI (port 9000)
+                                        v
+                              WordPress + php-fpm
+                                        |
+                                SQL (port 3306)
+                                        v
+                                     MariaDB
+```
+
+## Resources
+
+### Documentation and articles
+
+- DataCamp, *Containers vs Virtual Machines*: https://www.datacamp.com/blog/containers-vs-virtual-machines
+- Docker Docs, *What is an image?*: https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-an-image/
+- Docker Docs, *Understanding image layers*: https://docs.docker.com/get-started/docker-concepts/building-images/understanding-image-layers/
+-
+
+### Use of AI
+
