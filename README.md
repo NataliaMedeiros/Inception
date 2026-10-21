@@ -326,3 +326,15 @@ https://www.datacamp.com/blog/containers-vs-virtual-machines?utm_cid=23552157103
 https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-an-image/
 
 https://docs.docker.com/get-started/docker-concepts/building-images/understanding-image-layers/
+
+
+MariaDB
+MariaDB is a relational database management system (RDBMS) that you talk to using SQL (Structured Query Language). It is a fork of MySQL, which is why many commands and config names still say mysql (the mysql user, /var/lib/mysql, MYSQL_USER).
+
+What that means:
+
+Relational: data is stored in tables with rows and columns, and tables can be linked to each other.
+SQL: the language used to create, read, change and delete that data, for example CREATE DATABASE, SELECT, INSERT.
+Server: MariaDB runs as a program that listens on port 3306. Clients (like WordPress) connect to it over the network and send SQL commands.
+
+dockefiles build the images
