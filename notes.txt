@@ -1,0 +1,34 @@
+nmedeiro@nmedeiro:~/inception$ tree
+.
+├── DEV_DOC.md
+├── Makefile
+├── README.md
+├── secrets
+│   ├── db_password.txt
+│   ├── db_root_password.txt
+│   ├── wp_admin_passwprd.txt
+│   └── wp_user_password.txt
+├── srcs
+│   ├── docker-compose.yml
+│   └── requirements
+│       ├── mariadb
+│       │   ├── conf
+│       │   │   └── 50-server.cnf
+│       │   ├── Dockerfile
+│       │   └── tools
+│       │       └── init-db.sh
+│       ├── nginx
+│       │   ├── conf
+│       │   │   └── nginx.conf.template
+│       │   ├── Dockerfile
+│       │   └── tools
+│       │       └── init-nginx.sh
+│       └── wordpress
+│           ├── conf
+│           │   └── zz-docker.conf
+│           ├── Dockerfile
+│           └── tools
+│               └── init-wp.sh
+└── USER_DOC.md
+
+13 directories, 18 files
