@@ -8,7 +8,7 @@ WP_USER_PASSWORD="$(cat /run/secrets/wp_user_password)"
 cd /var/www/html
 
 if [ ! -f wp-config.php ]; then
-    wp core download --allow-root
+    wp core download --allow-root --force
 
     wp config create --allow-root \
         --dbname="$MYSQL_DATABASE" \

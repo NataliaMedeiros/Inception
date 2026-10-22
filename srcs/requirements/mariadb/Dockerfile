@@ -15,7 +15,7 @@ FROM debian:bookworm
 #would still exist in the earlier layer and the image wouldn’t get smaller.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends mariadb-server \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* /var/lib/mysql/*
 
 #They copy files from your repo into the image.
 #50-server.cnf - It tells the MariaDB server which network interface to listen on
