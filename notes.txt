@@ -1,37 +1,6 @@
-nmedeiro@nmedeiro:~/inception$ tree -a -I .git
-.
-├── DEV_DOC.md
-├── .gitignore
-├── Makefile
-├── README.md
-├── secrets
-│   ├── db_password.txt
-│   ├── db_root_password.txt
-│   ├── wp_admin_password.txt
-│   └── wp_user_password.txt
-├── srcs
-│   ├── docker-compose.yml
-│   ├── .env
-│   ├── .env.example
-│   └── requirements
-│       ├── mariadb
-│       │   ├── conf
-│       │   │   └── 50-server.cnf
-│       │   ├── Dockerfile
-│       │   └── tools
-│       │       └── init-db.sh
-│       ├── nginx
-│       │   ├── conf
-│       │   │   └── nginx.conf.template
-│       │   ├── Dockerfile
-│       │   └── tools
-│       │       └── init-nginx.sh
-│       └── wordpress
-│           ├── conf
-│           │   └── zz-docker.conf
-│           ├── Dockerfile
-│           └── tools
-│               └── init-wp.sh
-└── USER_DOC.md
-
-13 directories, 21 files
+make ps
+docker compose -f srcs/docker-compose.yml ps
+NAME        IMAGE                                                                     COMMAND                  SERVICE     CREATED         STATUS                          PORTS
+mariadb     sha256:f20f4ed0565a078d6a191aa6054277958a96c25dd0e7513b171f9415401bfeab   "/usr/local/bin/init…"   mariadb     6 minutes ago   Up 4 minutes (healthy)          3306/tcp
+nginx       nginx:inception                                                           "/usr/local/bin/init…"   nginx       4 minutes ago   Up 4 minutes                    0.0.0.0:443->443/tcp, [::]:443->443/tcp
+wordpress   wordpress:inception                                                       "/usr/local/bin/init…"   wordpress   4 minutes ago   Restarting (1) 16 seconds ago 
