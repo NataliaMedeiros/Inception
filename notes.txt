@@ -1,15 +1,18 @@
-nmedeiro@nmedeiro:~/inception$ tree
+nmedeiro@nmedeiro:~/inception$ tree -a -I .git
 .
 ├── DEV_DOC.md
+├── .gitignore
 ├── Makefile
 ├── README.md
 ├── secrets
 │   ├── db_password.txt
 │   ├── db_root_password.txt
-│   ├── wp_admin_passwprd.txt
+│   ├── wp_admin_password.txt
 │   └── wp_user_password.txt
 ├── srcs
 │   ├── docker-compose.yml
+│   ├── .env
+│   ├── .env.example
 │   └── requirements
 │       ├── mariadb
 │       │   ├── conf
@@ -31,4 +34,4 @@ nmedeiro@nmedeiro:~/inception$ tree
 │               └── init-wp.sh
 └── USER_DOC.md
 
-13 directories, 18 files
+13 directories, 21 files
