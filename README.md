@@ -1,4 +1,4 @@
-*This project has been created as part of the 42 curriculum by <nmedeiro>.*
+*This project has been created as part of the 42 curriculum by nmedeiro.*
 
 # Inception
 
@@ -13,8 +13,6 @@ The stack is made of:
 - **MariaDB**: the database used by WordPress (no NGINX inside this container).
 - **Two named volumes**: one for the WordPress database and one for the WordPress website files, both stored in `/home/<login>/data` on the host.
 - **A Docker network** connecting the containers.
-
-`<If I decide to do the bonus, I need to list the extra services here (Redis, FTP, static site, Adminer, ...).>`
 
 The website is available at `https://nmedeiro.42.fr`.
 
@@ -31,21 +29,32 @@ The website is available at `https://nmedeiro.42.fr`.
 
 ### Configuration
 
-1. Create `srcs/.env` with the non-sensitive variables (domain name, database name, usernames, ...).
-2. Create the `secrets/` folder with the password files (`db_password.txt`, `db_root_password.txt`, `credentials.txt`).
-3. Make sure neither `.env` nor `secrets/` is committed to Git.
+1. Create `srcs/.env` from the template and fill in your values (domain name, database name, usernames, emails):
+```bash
+   cp srcs/.env.example srcs/.env
+```
+2. Create the `secrets/` folder with four files, each containing only a password:
+   `db_root_password.txt`, `db_password.txt`, `wp_admin_password.txt` and `wp_user_password.txt`.
+3. `.env` and `secrets/` are ignored by Git. Never commit them.
+
+See [DEV_DOC.md](DEV_DOC.md) for the full setup of the virtual machine.
 
 ### Build and run
 
 ```bash
-make          # build the images and start the stack
-make down     # stop the containers
-make clean    # <adjust to your Makefile>
-make fclean   # <adjust to your Makefile>
-make re       # rebuild everything
+make          # create the data folders, build the images and start the stack
+make stop     # stop the containers without removing them
+make start    # start them again
+make down     # remove the containers and the network (data is kept)
+make clean    # also remove the volumes and images (data in /home/<login>/data is kept)
+make fclean   # clean, then erase the stored data (asks for the sudo password)
+make re       # fclean, then rebuild everything
+make ps       # status of the containers
+make logs     # logs of the containers
 ```
 
-Then open `https://<login>.42.fr` in a browser (the browser will warn about the self-signed certificate).
+Then open `https://<login>.42.fr` in a browser. The browser will warn about the
+self-signed certificate: accept it to continue.
 
 ### More documentation
 
@@ -58,18 +67,21 @@ Then open `https://<login>.42.fr` in a browser (the browser will warn about the 
 
 Docker is used to run each service in an isolated container. The project is organized as follows:
 
-```
 .
 ├── Makefile                  # builds and starts everything through docker compose
-├── secrets/                  # passwords (ignored by git)
+├── README.md
+├── USER_DOC.md               # user documentation
+├── DEV_DOC.md                # developer documentation
+├── .gitignore                # keeps secrets/ and srcs/.env out of Git
+├── secrets/                  # passwords (ignored by Git)
 └── srcs/
     ├── docker-compose.yml    # services, network and volumes
-    ├── .env                  # non-sensitive environment variables (ignored by git)
+    ├── .env                  # non-sensitive variables (ignored by Git)
+    ├── .env.example          # template for .env (committed)
     └── requirements/
         ├── mariadb/          # Dockerfile, conf/, tools/
         ├── nginx/            # Dockerfile, conf/, tools/
         └── wordpress/        # Dockerfile, conf/, tools/
-```
 
 - Each service has its **own Dockerfile**, and each image has the same name as its service.
 - The Makefile calls `docker compose`, which builds the images from these Dockerfiles and starts the containers.
@@ -77,8 +89,8 @@ Docker is used to run each service in an isolated container. The project is orga
 
 ### Main design choices
 
-- **Base image:** `<Alpine/Debian + version>`. This is the penultimate stable version, as required by the subject. The `latest` tag is never used.
-- **Why this base:** `<your reason>`.
+- **Base image:** `debian:bookworm` (Debian 12), the penultimate stable release, as required by the subject. The `latest` tag is never used.
+- **Why Debian:** it is widely documented, uses glibc so software behaves as documented, and is easier to debug than Alpine for a beginner.
 - **PID 1:** every service runs in the foreground as PID 1 (via `exec` in the entrypoint script). No `tail -f`, `sleep infinity`, `while true` or `bash` hacks.
 - **Restart policy:** containers restart automatically if they crash.
 - **Single entrypoint:** only NGINX publishes a port (443). WordPress and MariaDB are only reachable inside the Docker network.
@@ -145,8 +157,7 @@ In this project, non-sensitive settings are in `.env` and passwords are in secre
 | Managed by | Docker | The user (any host path) |
 | Portability | High, independent of the host folder layout | Depends on the host path existing |
 | In this project | **Required** for the database and the WordPress files, with data stored in `/home/<login>/data` | Not allowed for these two storages |
-
-`<Add one sentence explaining how you configured the named volumes to store data in /home/<login>/data.>`
+The two named volumes are declared with `driver_opts` (`type: none`, `o: bind`, `device: /home/<login>/data/...`), so Docker manages them as named volumes while the data is physically stored in the required host folder.
 
 ## Concepts Explained
 
@@ -250,10 +261,25 @@ Browser --HTTPS (443, TLSv1.2/1.3)--> NGINX
 
 ### Documentation and articles
 
-- DataCamp, *Containers vs Virtual Machines*: https://www.datacamp.com/blog/containers-vs-virtual-machines
+### Documentation and articles
+
+**Docker and containers**
+- Docker Docs, *Dockerfile reference*: https://docs.docker.com/reference/dockerfile/
+- Docker Docs, *Docker Compose*: https://docs.docker.com/compose/
 - Docker Docs, *What is an image?*: https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-an-image/
 - Docker Docs, *Understanding image layers*: https://docs.docker.com/get-started/docker-concepts/building-images/understanding-image-layers/
-- https://github.com/WordPress/hosting-handbook/blob/main/server-environment.md
-- https://make.wordpress.org/hosting/handbook/server-environment/#php-extensions
+- DataCamp, *Containers vs Virtual Machines*: https://www.datacamp.com/blog/containers-vs-virtual-machines
+
+**Services**
+- NGINX Documentation: https://nginx.org/en/docs/
+- MariaDB Documentation: https://mariadb.com/kb/en/documentation/
+- WP-CLI Commands: https://developer.wordpress.org/cli/commands/
+- WordPress Hosting Handbook, *Server environment*: https://github.com/WordPress/hosting-handbook/blob/main/server-environment.md
+- WordPress Hosting Team, *Server environment: PHP extensions*: https://make.wordpress.org/hosting/handbook/server-environment/#php-extensions
+
+**Debian**
+- Debian Releases (stable and oldstable): https://www.debian.org/releases/
+
 ### Use of AI
 
+AI was used to help me to understand some concepts that I was still in doubt, to debug errors, and to review the documentation.
