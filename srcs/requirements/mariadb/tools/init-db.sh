@@ -23,8 +23,6 @@ fi
 
 exec mariadbd --user=mysql
 
-
-
 #The if: it checks a folder in the data folder
 #(/var/lib/mysql/mysql, which is the volume), not in the image.
 #If the folder doesn’t exist, the database is new, so the script
