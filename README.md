@@ -2,16 +2,24 @@
 
 # Inception
 
+## Table of contents
+
+- [Description](#description)
+- [Instructions](#instructions)
+- [Project Description](#project-description)
+- [Concepts Explained](#concepts-explained)
+- [Resources](#resources)
+
 ## Description
 
 Inception is a system administration project from the 42 curriculum. The goal is to set up a small web infrastructure with **Docker Compose**, inside a **virtual machine**, where every service runs in its own container and every image is built from our own Dockerfile.
 
-The stack is made of:
+It is made of:
 
 - **NGINX**: the only entrypoint of the infrastructure, reachable on port 443 with TLSv1.2 or TLSv1.3 only.
-- **WordPress + php-fpm**: the website and the PHP engine that runs it (no NGINX inside this container).
-- **MariaDB**: the database used by WordPress (no NGINX inside this container).
-- **Two named volumes**: one for the WordPress database and one for the WordPress website files, both stored in `/home/<login>/data` on the host.
+- **WordPress + php-fpm**: the website and the PHP engine that runs it.
+- **MariaDB**: the database used by WordPress.
+- **Two named volumes**: one for the WordPress database and one for the WordPress website files, both stored in `/home/nmedeiro/data` on the host.
 - **A Docker network** connecting the containers.
 
 The website is available at `https://nmedeiro.42.fr`.
@@ -21,10 +29,10 @@ The website is available at `https://nmedeiro.42.fr`.
 ### Prerequisites
 
 - A virtual machine running Linux, with `docker`, `docker compose` and `make` installed.
-- The domain name pointing to the local IP address. Add this line to `/etc/hosts` (replace the IP and the login):
+- The domain name pointing to the local IP address. Add this line to `/etc/hosts`.
 
 ```
-127.0.0.1   <login>.42.fr
+127.0.0.1   nmedeiro.42.fr
 ```
 
 ### Configuration
@@ -37,7 +45,7 @@ The website is available at `https://nmedeiro.42.fr`.
    `db_root_password.txt`, `db_password.txt`, `wp_admin_password.txt` and `wp_user_password.txt`.
 3. `.env` and `secrets/` are ignored by Git. Never commit them.
 
-See [DEV_DOC.md](DEV_DOC.md) for the full setup of the virtual machine.
+See [DEV_DOC.md](DEV_DOC.md) for the prerequisites and the full environment setup.
 
 ### Build and run
 
@@ -46,14 +54,14 @@ make          # create the data folders, build the images and start the stack
 make stop     # stop the containers without removing them
 make start    # start them again
 make down     # remove the containers and the network (data is kept)
-make clean    # also remove the volumes and images (data in /home/<login>/data is kept)
+make clean    # also remove the volumes and images (data in /home/nmedeiro/data is kept)
 make fclean   # clean, then erase the stored data (asks for the sudo password)
 make re       # fclean, then rebuild everything
 make ps       # status of the containers
 make logs     # logs of the containers
 ```
 
-Then open `https://<login>.42.fr` in a browser. The browser will warn about the
+Then open `https://nmedeiro.42.fr` in a browser. The browser will warn about the
 self-signed certificate: accept it to continue.
 
 ### More documentation
@@ -67,6 +75,7 @@ self-signed certificate: accept it to continue.
 
 Docker is used to run each service in an isolated container. The project is organized as follows:
 
+```
 .
 ├── Makefile                  # builds and starts everything through docker compose
 ├── README.md
@@ -82,10 +91,11 @@ Docker is used to run each service in an isolated container. The project is orga
         ├── mariadb/          # Dockerfile, conf/, tools/
         ├── nginx/            # Dockerfile, conf/, tools/
         └── wordpress/        # Dockerfile, conf/, tools/
+```
 
 - Each service has its **own Dockerfile**, and each image has the same name as its service.
 - The Makefile calls `docker compose`, which builds the images from these Dockerfiles and starts the containers.
-- No ready-made images are pulled, except the Alpine/Debian base image.
+- No ready-made images are pulled, except the Debian base image.
 
 ### Main design choices
 
@@ -97,26 +107,13 @@ Docker is used to run each service in an isolated container. The project is orga
 - **Credentials:** non-sensitive values in `.env`, passwords in Docker secrets. No password appears in any Dockerfile.
 - **WordPress users:** two users, one of them an administrator whose name does not contain "admin" or "administrator".
 
-#### Debian vs Alpine
-
-| | Debian | Alpine |
-|---|---|---|
-| Type | General-purpose, one of the oldest and most stable | Minimal, built for small size and security |
-| C library | glibc | musl |
-| Package manager | `apt` | `apk` |
-| Shell | bash available | BusyBox, `/bin/sh` |
-| Image size | Larger, slower builds | Tiny, fast builds and pulls |
-| Attack surface | Larger (more packages) | Smaller |
-| Compatibility | Software behaves as expected, most tutorials match | Rare musl compatibility or performance bugs, different commands and paths |
-| Debugging | Easier, more tools | Harder for beginners |
-
 ### Comparisons
 
 #### Virtual Machines vs Docker
 
 **Virtualization** is a technique that allows running multiple environments on a single physical server. It is mainly done with virtual machines or containers.
 
-A **virtual machine** virtualizes the *hardware*. A **hypervisor** allocates resources such as CPU cores and storage to each VM, and each VM runs its own operating system, applications and dependencies. Because of this, VMs use more CPU and RAM and take longer to start. In return, they offer stronger isolation: a security threat in one VM does not affect another. VMs are a good fit for legacy applications that need old operating systems, multi-OS environments and security-critical workloads.
+A **virtual machine** virtualizes at the *hardware* level. A **hypervisor** allocates resources such as CPU cores and storage to each VM, and each VM runs its own operating system, applications and dependencies. Because of this, VMs use more CPU and RAM and take longer to start. In return, they offer stronger isolation: a security threat in one VM does not affect another. VMs are a good fit for legacy applications that need old operating systems, multi-OS environments and security-critical workloads.
 
 A **container** virtualizes at the *operating system* level. Containers do not have their own OS: they share the host kernel and only package the application and its dependencies. This makes them lightweight, fast to start (seconds) and very portable, so they can move between development, testing and production with minimal effort. They fit microservices architectures and CI/CD pipelines well. **Docker** is the most widely used platform to build and run containers.
 
@@ -133,15 +130,17 @@ The two can be combined: running containers inside VMs adds an isolation layer, 
 
 #### Secrets vs Environment Variables
 
+Environment variables are plain values passed to a container, and they can be read with `docker inspect` or from inside the process. Docker secrets are files mounted in `/run/secrets/` only in the services that declare them, so they are better for passwords. In this project, non-sensitive settings are in `.env` and all passwords are in secrets, and neither is committed to Git.
+
 | | Environment variables | Docker secrets |
 |---|---|---|
 | Defined in | `.env` file or `environment:` in Compose | Files in `secrets/`, declared in Compose |
 | Visibility | Visible with `docker inspect` and in the process environment | Mounted as files in `/run/secrets/<name>`, only inside the services that need them |
 | Best for | Non-sensitive configuration (domain name, database name, usernames) | Passwords and confidential data |
 
-In this project, non-sensitive settings are in `.env` and passwords are in secrets. Neither is committed to Git.
-
 #### Docker Network vs Host Network
+
+On a Docker network, containers are isolated and reach each other by service name, and only the ports that are published are reachable from outside. With the host network, a container shares the host's network stack and has no isolation. This project uses a custom Docker network, and `network: host` is forbidden by the subject.
 
 | | Docker (bridge) network | Host network |
 |---|---|---|
@@ -152,12 +151,7 @@ In this project, non-sensitive settings are in `.env` and passwords are in secre
 
 #### Docker Volumes vs Bind Mounts
 
-| | Docker named volume | Bind mount |
-|---|---|---|
-| Managed by | Docker | The user (any host path) |
-| Portability | High, independent of the host folder layout | Depends on the host path existing |
-| In this project | **Required** for the database and the WordPress files, with data stored in `/home/<login>/data` | Not allowed for these two storages |
-The two named volumes are declared with `driver_opts` (`type: none`, `o: bind`, `device: /home/<login>/data/...`), so Docker manages them as named volumes while the data is physically stored in the required host folder.
+A named volume is created and managed by Docker, while a bind mount links a specific host folder directly into the container and depends on that path existing. This project requires named volumes for the database and the WordPress files. They are configured with `driver_opts` so that the data is stored in `/home/nmedeiro/data`.
 
 ## Concepts Explained
 
@@ -258,8 +252,6 @@ Browser --HTTPS (443, TLSv1.2/1.3)--> NGINX
 ```
 
 ## Resources
-
-### Documentation and articles
 
 ### Documentation and articles
 
