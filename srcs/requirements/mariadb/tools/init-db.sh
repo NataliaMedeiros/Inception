@@ -4,14 +4,12 @@ set -e
 DB_PASSWORD="$(cat /run/secrets/db_password)"
 DB_ROOT_PASSWORD="$(cat /run/secrets/db_root_password)"
 
-#-R means recursive: apply the change to the folder and everything inside it
 chown -R mysql:mysql /var/lib/mysql
 
 #-d tests whether a folder exists, and ! means “not”.
-#Read it as: “if the folder /var/lib/mysql/mysql doesn’t exist, do the setup.”
-#so it run only the data folder has no database yet
 if [ ! -d /var/lib/mysql/mysql ]; then
-    mariadb-install-db --user=mysql --datadir=/var/lib/mysql > /dev/null #Creates the empty system databases MariaDB needs.
+	#Creates the empty system databases MariaDB needs.
+    mariadb-install-db --user=mysql --datadir=/var/lib/mysql > /dev/null
 
     mariadbd --user=mysql --bootstrap <<EOF
 FLUSH PRIVILEGES;
@@ -25,6 +23,12 @@ fi
 
 exec mariadbd --user=mysql
 
+
+
+#The if: it checks a folder in the data folder
+#(/var/lib/mysql/mysql, which is the volume), not in the image.
+#If the folder doesn’t exist, the database is new, so the script
+#sets it up. If it exists, the setup is skipped.
 
 #When the container starts, the script reads the passwords, creates the
 #database and users only the first time, and then hands control to the
