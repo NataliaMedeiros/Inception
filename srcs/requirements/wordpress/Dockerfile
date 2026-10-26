@@ -11,7 +11,7 @@ RUN apt-get update \
 
 #php*.2-mysql - Allow PHP to connect whit MariaDB
 
-# WP-CLI: installs and configures WordPress from the command line
+# installs and WP-CLI from the command line
 RUN curl -fsSL https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \
         -o /usr/local/bin/wp \
     && chmod +x /usr/local/bin/wp
@@ -22,9 +22,12 @@ COPY conf/zz-docker.conf /etc/php/8.2/fpm/pool.d/zz-docker.conf
 # Startup script
 COPY tools/init-wp.sh /usr/local/bin/init-wp.sh
 
+#/run/php, where php-fpm keeps its PID file
+#/var/www/html where the volume is mounted.
 RUN chmod +x /usr/local/bin/init-wp.sh \
     && mkdir -p /run/php /var/www/html
 
 EXPOSE 9000
 
+#it sets what runs when the container starts
 ENTRYPOINT ["/usr/local/bin/init-wp.sh"]
