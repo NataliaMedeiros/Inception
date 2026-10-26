@@ -10,7 +10,9 @@ RUN apt-get update \
 COPY conf/nginx.conf.template /etc/nginx/nginx.conf.template
 COPY tools/init-nginx.sh /usr/local/bin/init-nginx.sh
 
-# Make the script executable, create folders, remove Debian's default site
+# Make the script executable;
+# create folders for the certificate and the site;
+# remove Debian's default site
 RUN chmod +x /usr/local/bin/init-nginx.sh \
     && mkdir -p /etc/nginx/ssl /var/www/html \
     && rm -f /etc/nginx/sites-enabled/default
