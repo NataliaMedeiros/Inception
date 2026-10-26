@@ -16,7 +16,7 @@ Inception is a system administration project from the 42 curriculum. The goal is
 
 It is made of:
 
-- **NGINX**: the only entrypoint of the infrastructure, reachable on port 443 with TLSv1.2 or TLSv1.3 only.
+- **NGINX**: the web server, a program that answers requests from browsers. It is the only entrypoint of the infrastructure: it accepts HTTPS on port 443 (TLSv1.2 or TLSv1.3 only) and forwards PHP requests to WordPress.
 - **WordPress + php-fpm**: the website and the PHP engine that runs it.
 - **MariaDB**: the database used by WordPress.
 - **Two named volumes**: one for the WordPress database and one for the WordPress website files, both stored in `/home/nmedeiro/data` on the host.
